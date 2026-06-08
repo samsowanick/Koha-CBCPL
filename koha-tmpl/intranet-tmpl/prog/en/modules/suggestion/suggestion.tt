@@ -1184,7 +1184,7 @@
         [% UNLESS op == 'save' %]
             <option value="">Any</option>
         [% END %]
-        [% IF suggestion.budgetid == '__NONE__' %]
+        [% IF !suggestion.budgetid || suggestion.budgetid == '__NONE__' %]
             <option value="__NONE__" selected="selected">None</option>
         [% ELSE %]
             <option value="__NONE__">None</option>
