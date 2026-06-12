@@ -121,7 +121,7 @@
                             <!-- Row of numbers corresponding to search result pages -->
                             [% IF ( displayprev ) %]
                                 <a
-                                    href="parcels.pl?booksellerid=[% booksellerid | uri %]&amp;startfrom=[% prevstartfrom | uri %][% IF ( datefrom ) %]&amp;datefrom=[% datefrom | uri %][% END %][% IF ( dateto ) %]&amp;dateto=[% dateto | uri %][% END %][% IF ( code ) %]&amp;filter=[% code | uri %][% END %][% IF ( orderby ) %]&amp;orderby=[% orderby | uri %][% END %][% IF ( resultsperpage ) %]&amp;resultsperpage=[% resultsperpage | uri %][% END %]&amp;type=intra"
+                                    href="parcels.pl?booksellerid=[% booksellerid | uri %]&amp;startfrom=[% prevstartfrom | uri %][% IF ( datefrom ) %]&amp;datefrom=[% datefrom | uri %][% END %][% IF ( dateto ) %]&amp;dateto=[% dateto | uri %][% END %][% IF ( code ) %]&amp;filter=[% code | uri %][% END %][% IF ( orderby ) %]&amp;orderby=[% orderby | uri %][% END %][% IF ( resultsperpage ) %]&amp;resultsperpage=[% resultsperpage | uri %][% END %][% IF ( filter_include_closed ) %]&amp;filter_include_closed=[% filter_include_closed | uri %][% END %]&amp;type=intra"
                                     >&lt;&lt; Previous</a
                                 >
                             [% END %]
@@ -130,14 +130,14 @@
                                     <span class="current">[% number.number | html %]</span>
                                 [% ELSE %]
                                     <a
-                                        href="parcels.pl?booksellerid=[% booksellerid | uri %]&amp;startfrom=[% number.startfrom | uri %][% IF ( number.datefrom ) %]&amp;datefrom=[% number.datefrom | uri %][% END %][% IF ( number.dateto ) %]&amp;dateto=[% number.dateto | uri %][% END %][% IF ( number.code ) %]&amp;filter=[% number.code | uri %][% END %][% IF ( number.orderby ) %]&amp;orderby=[% number.orderby | uri %][% END %][% IF ( number.resultsperpage ) %]&amp;resultsperpage=[% number.resultsperpage | uri %][% END %]&amp;type=intra"
+                                        href="parcels.pl?booksellerid=[% booksellerid | uri %]&amp;startfrom=[% number.startfrom | uri %][% IF ( datefrom ) %]&amp;datefrom=[% datefrom | uri %][% END %][% IF ( dateto ) %]&amp;dateto=[% dateto | uri %][% END %][% IF ( code ) %]&amp;filter=[% code | uri %][% END %][% IF ( orderby ) %]&amp;orderby=[% orderby | uri %][% END %][% IF ( resultsperpage ) %]&amp;resultsperpage=[% resultsperpage | uri %][% END %][% IF ( filter_include_closed ) %]&amp;filter_include_closed=[% filter_include_closed | uri %][% END %]&amp;type=intra"
                                         >[% number.number | html %]</a
                                     >
                                 [% END %]
                             [% END %]
                             [% IF ( displaynext ) %]
                                 <a
-                                    href="parcels.pl?booksellerid=[% booksellerid | uri %]&amp;startfrom=[% nextstartfrom | uri %][% IF ( datefrom ) %]&amp;datefrom=[% datefrom | uri %][% END %][% IF ( dateto ) %]&amp;dateto=[% dateto | uri %][% END %][% IF ( code ) %]&amp;filter=[% code | uri %][% END %][% IF ( orderby ) %]&amp;orderby=[% orderby | uri %][% END %][% IF ( resultsperpage ) %]&amp;resultsperpage=[% resultsperpage | uri %][% END %]&amp;type=intra"
+                                    href="parcels.pl?booksellerid=[% booksellerid | uri %]&amp;startfrom=[% nextstartfrom | uri %][% IF ( datefrom ) %]&amp;datefrom=[% datefrom | uri %][% END %][% IF ( dateto ) %]&amp;dateto=[% dateto | uri %][% END %][% IF ( code ) %]&amp;filter=[% code | uri %][% END %][% IF ( orderby ) %]&amp;orderby=[% orderby | uri %][% END %][% IF ( resultsperpage ) %]&amp;resultsperpage=[% resultsperpage | uri %][% END %][% IF ( filter_include_closed ) %]&amp;filter_include_closed=[% filter_include_closed | uri %][% END %]&amp;type=intra"
                                     >Next &gt;&gt;</a
                                 >
                             [% END %]
@@ -226,17 +226,17 @@
                             <li
                                 ><label for="orderby">Sort by :</label
                                 ><select name="orderby" id="orderby">
-                                    <option value="invoicenumber">Invoice number</option>
-                                    <option value="shipmentdate">Shipment date</option>
-                                    <option value="shipmentdate desc">Shipment date reverse</option>
-                                    <option value="invoicenumber desc">Invoice number reverse</option> </select
+                                    <option value="invoicenumber"[% IF orderby == 'invoicenumber' %] selected="selected"[% END %]>Invoice number</option>
+                                    <option value="shipmentdate"[% IF orderby == 'shipmentdate' %] selected="selected"[% END %]>Shipment date</option>
+                                    <option value="shipmentdate desc"[% IF orderby == 'shipmentdate desc' %] selected="selected"[% END %]>Shipment date reverse</option>
+                                    <option value="invoicenumber desc"[% IF orderby == 'invoicenumber desc' %] selected="selected"[% END %]>Invoice number reverse</option> </select
                                 ><br />
                                 <label for="resultsperpage">Results per page :</label
                                 ><select name="resultsperpage" id="resultsperpage">
-                                    <option value="20">20</option>
-                                    <option value="30">30</option>
-                                    <option value="50">50</option>
-                                    <option value="100">100</option>
+                                    <option value="20"[% IF resultsperpage == 20 %] selected="selected"[% END %]>20</option>
+                                    <option value="30"[% IF resultsperpage == 30 %] selected="selected"[% END %]>30</option>
+                                    <option value="50"[% IF resultsperpage == 50 %] selected="selected"[% END %]>50</option>
+                                    <option value="100"[% IF resultsperpage == 100 %] selected="selected"[% END %]>100</option>
                                 </select></li
                             >
                             <li>
