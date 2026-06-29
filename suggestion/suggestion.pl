@@ -541,7 +541,8 @@ my $sugg_budget_loop = [];
 my $sugg_budgets     = GetBudgetHierarchy();
 foreach my $r ( @{$sugg_budgets} ) {
     next unless ( CanUserUseBudget( $librarian->unblessed, $r, $userflags ) );
-    my $current_budgetid = ( $stored_suggestion && $stored_suggestion->budgetid )
+    my $current_budgetid =
+        ( $stored_suggestion && $stored_suggestion->budgetid )
         ? $stored_suggestion->budgetid
         : $$suggestion_ref{budgetid};
     my $selected = ( $current_budgetid && $r->{budget_id} eq $current_budgetid ) ? 1 : 0;
