@@ -23,6 +23,7 @@ textarea {
 }
 .flatpickr-input {
     width: 30%;
+    margin: 3px 3px 0 5px;
 }
 .sidebar_menu ul li a.current.disabled {
     background-color: inherit;
