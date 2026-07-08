@@ -53,6 +53,7 @@ export default {
                         resourceProperty: "by_expired",
                         qualifier: "!",
                     },
+		    class: "agreement_date_filter"
                 },
                 value: "",
             },
