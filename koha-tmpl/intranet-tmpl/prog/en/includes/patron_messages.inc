@@ -285,7 +285,8 @@
                             <span class="barcode">([% w.item.barcode | html %])</span>
                             <span>Hold placed on [% w.reservedate | $KohaDates %].</span>
                             <br />
-                            <strong> [% SET expires_on = w.expirationdate %] Waiting at [% w.branch.branchname | html %] [% IF expires_on %]until [% expires_on | $KohaDates %][% END %] </strong>
+                            <strong class="waitinghere"> [% SET expires_on = w.expirationdate %] Waiting at [% w.branch.branchname | html %] [% IF expires_on %]until [% expires_on | $KohaDates %][% END %]. </strong>
+                            <strong class="waitingsince"> Waiting at [% w.branch.branchname | html %] since [% w.waitingdate | $KohaDates %]. </strong>
                         </li>
                     [% END %]
                 [% END %]
