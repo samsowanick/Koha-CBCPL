@@ -29,18 +29,20 @@ this script is to show orders ordered but not yet received
 
 use C4::Context;
 use Modern::Perl;
-use CGI        qw ( -utf8 );
-use C4::Auth   qw( get_template_and_user );
-use C4::Output qw( output_html_with_http_headers );
+use CGI          qw ( -utf8 );
+use C4::Auth     qw( get_template_and_user );
+use C4::Output   qw( output_html_with_http_headers );
+use C4::Budgets  qw( GetBudgetHierarchy CanUserUseBudget );
 use Koha::Acquisition::Invoice::Adjustments;
 use C4::Acquisition qw( get_rounded_price );
+use Koha::Patrons;
 
 my $dbh       = C4::Context->dbh;
 my $input     = CGI->new;
 my $fund_id   = $input->param('fund');
 my $fund_code = $input->param('fund_code');
 
-my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
+my ( $template, $loggedinuser, $cookie, $userflags ) = get_template_and_user(
     {
         template_name => "acqui/ordered.tt",
         query         => $input,
@@ -58,6 +60,7 @@ SELECT
     quantity-quantityreceived AS tleft,
     $ecost_field, budgetdate, entrydate,
     aqbasket.booksellerid,
+    aqbasket.closedate AS basket_closedate,
     aqbooksellers.name as vendorname,
     GROUP_CONCAT(DISTINCT itype SEPARATOR '|') AS itypes,
     title
@@ -79,6 +82,7 @@ WHERE
              tleft,
              $ecost_field, budgetdate, entrydate,
              aqbasket.booksellerid,
+             aqbasket.closedate,
              aqbooksellers.name,
              title
 EOQ
@@ -100,8 +104,11 @@ while ( my $data = $sth->fetchrow_hashref ) {
     }
     if ( $left && $left > 0 ) {
         my $subtotal = $left * get_rounded_price( $data->{$ecost_field} );
-        $data->{subtotal} = sprintf( "%.2f", $subtotal );
-        $data->{'left'}   = $left;
+        $data->{subtotal}    = sprintf( "%.2f", $subtotal );
+        $data->{'left'}      = $left;
+
+        $data->{basket_open} = $data->{basket_closedate} ? 0 : 1;
+
         push @ordered, $data;
         $total += $subtotal;
     }
@@ -117,11 +124,29 @@ while ( my $adj = $adjustments->next ) {
 
 $total = sprintf( "%.2f", $total );
 
+my $patron      = Koha::Patrons->find($loggedinuser)->unblessed;
+my $budget_loop = [];
+my $budgets     = GetBudgetHierarchy;
+foreach my $r ( @{$budgets} ) {
+    next unless CanUserUseBudget( $patron, $r, $userflags );
+    push @{$budget_loop}, {
+        b_id  => $r->{budget_id},
+        b_txt => $r->{budget_name},
+    };
+}
+
+my $referrer = $input->url( -absolute => 1, -query => 1 );
+
 $template->{VARS}->{'fund'}        = $fund_id;
 $template->{VARS}->{'ordered'}     = \@ordered;
 $template->{VARS}->{'total'}       = $total;
 $template->{VARS}->{'fund_code'}   = $fund_code;
 $template->{VARS}->{'adjustments'} = $adjustments;
+$template->{VARS}->{'budget_loop'} = $budget_loop;
+$template->{VARS}->{'referrer'}    = $referrer;
+
+$template->{VARS}->{'modorderline_updated'}      = $input->param('modorderline_updated');
+$template->{VARS}->{'modorderline_fund_skipped'} = $input->param('modorderline_fund_skipped');
 
 $sth->finish;
 
