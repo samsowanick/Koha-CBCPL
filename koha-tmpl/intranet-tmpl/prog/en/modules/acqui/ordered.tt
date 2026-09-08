@@ -35,10 +35,43 @@
 [% WRAPPER 'main-container.inc' aside='acquisitions-menu' %]
     <h1>Ordered - Fund: [% fund_code | html %]</h1>
 
+    [% IF modorderline_updated %]
+        <div class="dialog message">
+            [% IF modorderline_updated == 1 %]
+                1 order line was updated.
+            [% ELSE %]
+                [% modorderline_updated | html %] order lines were updated.
+            [% END %]
+            [% IF modorderline_fund_skipped && modorderline_fund_skipped > 0 %]
+                The fund was not changed on
+                [% IF modorderline_fund_skipped == 1 %]
+                    1 order line
+                [% ELSE %]
+                    [% modorderline_fund_skipped | html %] order lines
+                [% END %]
+                because [% IF modorderline_fund_skipped == 1 %]its basket is[% ELSE %]their baskets are[% END %] closed.
+            [% END %]
+        </div>
+    [% END %]
+
+    [% IF ( CAN_user_acquisition_order_manage ) %]
+        <div class="btn-toolbar" id="ordered-toolbar">
+            <button type="button" id="update_selected_btn" class="btn btn-default" disabled="disabled" data-bs-toggle="modal" data-bs-target="#bulkEditModal">
+                <i class="fa fa-pencil" aria-hidden="true"></i>
+                Update selected (<span id="selected_count">0</span>)
+            </button>
+        </div>
+    [% END %]
+
     <div class="page-section">
         <table id="spent">
             <thead>
                 <tr>
+                    [% IF ( CAN_user_acquisition_order_manage ) %]
+                        <th class="NoSort noExport">
+                            <input type="checkbox" id="select_all_orders" title="Select all / none" />
+                        </th>
+                    [% END %]
                     <th class="anti-the"> Title </th>
                     <th> [% tp('noun', 'Order') | html %] </th>
                     <th> Vendor </th>
@@ -52,6 +85,16 @@
             <tbody>
                 [% FOREACH order IN ordered %]
                     <tr>
+                        [% IF ( CAN_user_acquisition_order_manage ) %]
+                            <td class="cell">
+                                <input
+                                    type="checkbox"
+                                    class="select_order"
+                                    value="[% order.ordernumber | html %]"
+                                    data-basket-open="[% order.basket_open | html %]"
+                                />
+                            </td>
+                        [% END %]
                         <td class="cell">
                             <a href="/cgi-bin/koha/catalogue/detail.pl?biblionumber=[% order.biblionumber | uri %]"> [% order.title | html %] </a>
                         </td>
@@ -90,6 +133,7 @@
                 [% IF ( adjustments && adjustments.count > 0 ) %]
                     [% FOREACH adjustment IN adjustments %]
                         <tr>
+                            [% IF ( CAN_user_acquisition_order_manage ) %]<td></td>[% END %]
                             <td></td>
                             <td colspan="6"
                                 >Adjustment cost for invoice
@@ -100,6 +144,7 @@
                     [% END %]
                 [% END %]
                 <tr>
+                    [% IF ( CAN_user_acquisition_order_manage ) %]<td></td>[% END %]
                     <td> Total </td>
                     <td> </td>
                     <td> </td>
@@ -113,16 +158,153 @@
         </table>
     </div>
     <!-- /.page-section -->
+
+    [% IF ( CAN_user_acquisition_order_manage ) %]
+        <div class="modal fade" id="bulkEditModal" tabindex="-1" aria-labelledby="bulkEditModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <form id="bulk_edit_form" action="/cgi-bin/koha/acqui/modorderline.pl" method="post">
+                    [% INCLUDE 'csrf-token.inc' %]
+                    <input type="hidden" name="op" value="cud-save" />
+                    <input type="hidden" name="referrer" value="[% referrer | html %]" />
+                    <div id="bulk_order_inputs"><!-- selected ordernumbers are injected here on submit --></div>
+
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="bulkEditModalLabel">Update selected orders</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p><span id="bulk_edit_count">0</span> order line(s) selected.</p>
+                            <p class="hint">Only tick a field below if you want to change it. Untouched fields are left as they are.</p>
+
+                            <fieldset class="rows">
+                                <ol>
+                                    <li>
+                                        <label class="checkbox_label" for="fund_enabled">
+                                            <input type="checkbox" id="fund_enabled" name="fund_enabled" value="1" /> Change fund to:
+                                        </label>
+                                        <select name="fund" id="fund_select" disabled="disabled">
+                                            <option value="">-- Select a fund --</option>
+                                            [% FOREACH b IN budget_loop %]
+                                                <option value="[% b.b_id | html %]">[% b.b_txt | html %]</option>
+                                            [% END %]
+                                        </select>
+                                        <div id="fund_closed_warning" class="alert alert-warning" style="display: none; margin-top: .5em;">
+                                            One or more selected order lines belong to a closed basket. The fund can't be
+                                            changed for those lines; they'll be left as they are and only the other
+                                            selected fields will be applied to them.
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <label class="checkbox_label" for="delivery_date_enabled">
+                                            <input type="checkbox" id="delivery_date_enabled" name="delivery_date_specified" value="1" /> Change estimated delivery date to:
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="estimated_delivery_date"
+                                            id="estimated_delivery_date"
+                                            class="flatpickr"
+                                            data-flatpickr-futuredate="true"
+                                            autocomplete="off"
+                                            disabled="disabled"
+                                        />
+                                        <span class="hint">Leave blank to clear the delivery date.</span>
+                                    </li>
+                                    <li>
+                                        <label class="checkbox_label" for="notes_enabled">
+                                            <input type="checkbox" id="notes_enabled" name="notes_specified" value="1" /> Change notes to:
+                                        </label>
+                                        <textarea name="notes" id="notes" rows="3" disabled="disabled"></textarea>
+                                        <span class="hint">Leave blank to clear the notes.</span>
+                                    </li>
+                                </ol>
+                            </fieldset>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary" id="bulk_edit_save_btn" disabled="disabled">Save</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    [% END %]
 [% END %]
 
 [% MACRO jsinclude BLOCK %]
     [% Asset.js("js/acquisitions-menu.js") | $raw %]
     [% INCLUDE 'datatables.inc' %]
+    [% INCLUDE 'calendar.inc' %]
     <script nonce="[% Koha.CSPNonce | $raw %]">
         $(document).ready(function () {
             $("#spent").kohaTable({
                 pagingType: "full",
             });
+
+            function updateSelectionState() {
+                var checked = $(".select_order:checked");
+                var count = checked.length;
+
+                $("#selected_count").text(count);
+                $("#bulk_edit_count").text(count);
+                $("#update_selected_btn").prop("disabled", count === 0);
+                $("#bulk_edit_save_btn").prop("disabled", count === 0);
+
+                $("#select_all_orders").prop(
+                    "checked",
+                    count > 0 && count === $(".select_order").length
+                );
+
+                var anyClosedBasket = false;
+                checked.each(function () {
+                    if ($(this).data("basket-open") == 0) {
+                        anyClosedBasket = true;
+                    }
+                });
+
+                if (anyClosedBasket) {
+                    $("#fund_enabled").prop("checked", false).prop("disabled", true);
+                    $("#fund_select").prop("disabled", true);
+                    $("#fund_closed_warning").show();
+                } else {
+                    $("#fund_enabled").prop("disabled", false);
+                    $("#fund_closed_warning").hide();
+                }
+            }
+
+            $(document).on("change", "#select_all_orders", function () {
+                $(".select_order").prop("checked", $(this).is(":checked"));
+                updateSelectionState();
+            });
+
+            $(document).on("change", ".select_order", function () {
+                updateSelectionState();
+            });
+
+            $("#fund_enabled").on("change", function () {
+                $("#fund_select").prop("disabled", !this.checked);
+            });
+            $("#delivery_date_enabled").on("change", function () {
+                $("#estimated_delivery_date").prop("disabled", !this.checked);
+            });
+            $("#notes_enabled").on("change", function () {
+                $("#notes").prop("disabled", !this.checked);
+            });
+
+            $("#bulk_edit_form").on("submit", function () {
+                var $container = $("#bulk_order_inputs").empty();
+                $(".select_order:checked").each(function () {
+                    $("<input>")
+                        .attr({
+                            type: "hidden",
+                            name: "ordernumber",
+                            value: $(this).val(),
+                        })
+                        .appendTo($container);
+                });
+            });
+
+            updateSelectionState();
         });
     </script>
 [% END %]
