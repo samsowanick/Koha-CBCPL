@@ -1,0 +1,52 @@
+[% USE raw %]
+[% USE Asset %]
+[% PROCESS 'i18n.inc' %]
+[% SET footerjs = 1 %]
+[% INCLUDE 'doc-head-open.inc' %]
+<title
+    >[% FILTER collapse %]
+        [% t("Update orders") | html %]
+        &rsaquo; [% t("Acquisitions") | html %] &rsaquo; [% t("Koha") | html %]
+    [% END %]</title
+>
+[% INCLUDE 'doc-head-close.inc' %]
+</head>
+
+<body id="acq_modorderline" class="acq">
+[% WRAPPER 'header.inc' %]
+    [% INCLUDE 'acquisitions-search.inc' %]
+[% END %]
+
+[% WRAPPER 'sub-header.inc' %]
+    [% WRAPPER breadcrumbs %]
+        [% WRAPPER breadcrumb_item %]
+            <a href="/cgi-bin/koha/acqui/acqui-home.pl">Acquisitions</a>
+        [% END %]
+        [% WRAPPER breadcrumb_item bc_active= 1 %]
+            <span>Update orders</span>
+        [% END %]
+    [% END #/ WRAPPER breadcrumbs %]
+[% END #/ WRAPPER sub-header.inc %]
+
+[% WRAPPER 'main-container.inc' aside='acquisitions-menu' %]
+    <h1>Update orders</h1>
+
+    <div class="page-section">
+        <p>
+            This page processes bulk order-line updates submitted from the
+            <em>Ordered</em> report and isn't meant to be opened directly.
+        </p>
+        [% IF referrer %]
+            <a href="[% referrer | url %]" class="btn btn-default">Back</a>
+        [% ELSE %]
+            <a href="/cgi-bin/koha/acqui/acqui-home.pl" class="btn btn-default">Back to Acquisitions</a>
+        [% END %]
+    </div>
+    <!-- /.page-section -->
+[% END %]
+
+[% MACRO jsinclude BLOCK %]
+    [% Asset.js("js/acquisitions-menu.js") | $raw %]
+[% END %]
+
+[% INCLUDE 'intranet-bottom.inc' %]
